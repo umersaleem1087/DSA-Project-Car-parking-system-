@@ -4,8 +4,12 @@
 #include <ctime>
 #include <string>
 
+// Forward declarations for circular dependency prevention
+class ParkingRequest;
+class ParkingSlot;
+
 // ============================================================================
-// REQUEST STATE ENUM
+// REQUEST STATE ENUM (Must be before Command struct)
 // ============================================================================
 enum class RequestState {
     REQUESTED,   // Request has been made but not yet allocated
@@ -13,6 +17,23 @@ enum class RequestState {
     OCCUPIED,    // Vehicle is currently occupying the slot
     RELEASED,    // Vehicle has left and slot is now free
     CANCELLED    // Request was cancelled
+};
+
+// ============================================================================
+// COMMAND STRUCT FOR ROLLBACK
+// ============================================================================
+struct Command {
+    ParkingRequest* requestPtr;
+    ParkingSlot* slotPtr;
+    RequestState oldState;
+    RequestState newState;
+    
+    Command() : requestPtr(nullptr), slotPtr(nullptr), 
+                oldState(RequestState::REQUESTED), newState(RequestState::REQUESTED) {}
+    
+    Command(ParkingRequest* req, ParkingSlot* slot, 
+            RequestState old, RequestState newS) 
+        : requestPtr(req), slotPtr(slot), oldState(old), newState(newS) {}
 };
 
 // ============================================================================
