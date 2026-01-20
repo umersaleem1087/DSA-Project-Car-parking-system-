@@ -1,0 +1,4 @@
+#ifndef PARKINGREQUEST_H
+#define PARKINGREQUEST_H
+
+#endif // PARKINGREQUEST_H

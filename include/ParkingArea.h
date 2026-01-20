@@ -1,0 +1,4 @@
+#ifndef PARKINGAREA_H
+#define PARKINGAREA_H
+
+#endif // PARKINGAREA_H

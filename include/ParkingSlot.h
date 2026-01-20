@@ -1,0 +1,4 @@
+#ifndef PARKINGSLOT_H
+#define PARKINGSLOT_H
+
+#endif // PARKINGSLOT_H

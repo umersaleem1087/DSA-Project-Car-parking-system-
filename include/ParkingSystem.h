@@ -1,0 +1,4 @@
+#ifndef PARKINGSYSTEM_H
+#define PARKINGSYSTEM_H
+
+#endif // PARKINGSYSTEM_H
