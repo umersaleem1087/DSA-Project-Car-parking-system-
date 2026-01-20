@@ -1,3 +1,4 @@
+#include "include/Common.h"
 #include "include/Zone.h"
 #include "include/ParkingArea.h"
 #include "include/ParkingSlot.h"
