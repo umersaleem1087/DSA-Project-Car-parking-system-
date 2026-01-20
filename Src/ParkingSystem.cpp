@@ -1,10 +1,7 @@
 #include "include/ParkingSystem.h"
 #include <iostream>
 #include <cmath>
-
-// ============================================================================
-// PARKING SYSTEM IMPLEMENTATION
-// ============================================================================
+#include <iomanip>
 
 ParkingSystem::ParkingSystem() {
     engine = new AllocationEngine();
@@ -12,239 +9,256 @@ ParkingSystem::ParkingSystem() {
 }
 
 ParkingSystem::~ParkingSystem() {
-    // Clean up master history
     while (!masterHistoryList.isEmpty()) {
         ParkingRequest* req = masterHistoryList.getFront();
         masterHistoryList.removeFront();
         delete req;
     }
-    
+    while (!activeRequests.isEmpty()) {
+        activeRequests.removeFront();
+    }
     delete engine;
     delete rollbackManager;
 }
 
-// ========================================================================
-// SYSTEM INITIALIZATION
-// ========================================================================
-
 void ParkingSystem::addZone(Zone* zone) {
     if (zone != nullptr) {
         engine->addZone(zone);
+        std::cout << "Zone " << zone->getZoneID() << " added to system" << std::endl;
     }
 }
 
-// ========================================================================
-// REQUEST PROCESSING
-// ========================================================================
+void ParkingSystem::displaySystemStatus() const {
+    std::cout << "\n========== SYSTEM STATUS ==========" << std::endl;
+    std::cout << "Master History Entries: " << getTotalRequests() << std::endl;
+    std::cout << "Active Requests: " << getActiveRequestCount() << std::endl;
+    std::cout << "Total Rollbacks: " << rollbackManager->getTotalRollbacksPerformed() << std::endl;
+    std::cout << "==================================\n" << std::endl;
+}
 
-ParkingSlot* ParkingSystem::requestParking(Vehicle* vehicle) {
-    if (vehicle == nullptr) {
-        std::cout << "Invalid vehicle" << std::endl;
-        return nullptr;
+ParkingRequest* ParkingSystem::findRequestByVehicleID(const std::string& vehicleID) {
+    Node<ParkingRequest*>* current = activeRequests.getHead();
+    while (current != nullptr) {
+        if (current->data != nullptr && current->data->getVehicleID() == vehicleID) {
+            return current->data;
+        }
+        current = current->next;
     }
-    
-    // Create parking request
-    ParkingRequest* request = new ParkingRequest(vehicle->getVehicleID(), 
-                                                  vehicle->getPreferredZoneID());
-    
-    // Try to allocate slot
+    return nullptr;
+}
+
+ParkingRequest* ParkingSystem::createRequest(const std::string& vehicleID, int preferredZoneID) {
+    std::cout << "\n[REQUEST] Vehicle " << vehicleID << " requesting Zone " << preferredZoneID << std::endl;
+    Vehicle* vehicle = new Vehicle(vehicleID, preferredZoneID);
+    ParkingRequest* request = new ParkingRequest(vehicleID, preferredZoneID);
     ParkingSlot* allocatedSlot = engine->allocateSlot(vehicle, request);
-    
-    // Add to master history regardless of outcome
     masterHistoryList.insertBack(request);
     
     if (allocatedSlot != nullptr) {
-        // Record successful allocation
         Command cmd(request, allocatedSlot, RequestState::REQUESTED, RequestState::ALLOCATED);
         rollbackManager->recordCommand(cmd);
         request->updateState(RequestState::ALLOCATED);
-        
-        std::cout << "Successfully allocated Slot " << allocatedSlot->getSlotID() 
-                  << " for Vehicle " << vehicle->getVehicleID() << std::endl;
+        activeRequests.insertBack(request);
+        std::cout << "[SUCCESS] Allocated Slot " << allocatedSlot->getSlotID() << " for Vehicle " << vehicleID << std::endl;
+        delete vehicle;
+        return request;
     } else {
-        // Mark request as cancelled
         request->updateState(RequestState::CANCELLED);
-        std::cout << "Failed to allocate parking for Vehicle " 
-                  << vehicle->getVehicleID() << std::endl;
+        std::cout << "[FAILED] No parking available for Vehicle " << vehicleID << std::endl;
+        delete vehicle;
+        return nullptr;
     }
-    
-    return allocatedSlot;
 }
 
-bool ParkingSystem::occupySlot(ParkingRequest* request, ParkingSlot* slot) {
-    if (request == nullptr || slot == nullptr) {
+ParkingRequest* ParkingSystem::getRequestByVehicleID(const std::string& vehicleID) {
+    return findRequestByVehicleID(vehicleID);
+}
+
+bool ParkingSystem::occupyRequest(const std::string& vehicleID) {
+    std::cout << "\n[OCCUPY] Vehicle " << vehicleID << " is entering slot" << std::endl;
+    ParkingRequest* request = findRequestByVehicleID(vehicleID);
+    if (request == nullptr) {
+        std::cout << "[ERROR] Request not found for Vehicle " << vehicleID << std::endl;
         return false;
     }
-    
-    // Record state change for rollback
     RequestState oldState = request->getCurrentStatus();
-    
     if (!request->updateState(RequestState::OCCUPIED)) {
-        std::cout << "Cannot transition request to OCCUPIED state" << std::endl;
+        std::cout << "[ERROR] Cannot transition to OCCUPIED state" << std::endl;
         return false;
     }
-    
-    // Record command
-    Command cmd(request, slot, oldState, RequestState::OCCUPIED);
+    Command cmd(request, nullptr, oldState, RequestState::OCCUPIED);
     rollbackManager->recordCommand(cmd);
-    
-    std::cout << "Vehicle " << request->getVehicleID() 
-              << " now occupying Slot " << slot->getSlotID() << std::endl;
-    
+    std::cout << "[SUCCESS] Vehicle " << vehicleID << " now occupying slot" << std::endl;
     return true;
 }
 
-bool ParkingSystem::releaseSlot(ParkingRequest* request) {
+bool ParkingSystem::releaseRequest(const std::string& vehicleID) {
+    std::cout << "\n[RELEASE] Vehicle " << vehicleID << " releasing slot" << std::endl;
+    ParkingRequest* request = findRequestByVehicleID(vehicleID);
     if (request == nullptr) {
+        std::cout << "[ERROR] Request not found for Vehicle " << vehicleID << std::endl;
         return false;
     }
-    
-    // Record state change for rollback
     RequestState oldState = request->getCurrentStatus();
-    
     if (!request->updateState(RequestState::RELEASED)) {
-        std::cout << "Cannot transition request to RELEASED state" << std::endl;
+        std::cout << "[ERROR] Cannot transition to RELEASED state" << std::endl;
         return false;
     }
-    
-    std::cout << "Vehicle " << request->getVehicleID() << " has released parking" << std::endl;
-    
+    std::cout << "[SUCCESS] Vehicle " << vehicleID << " released slot" << std::endl;
     return true;
 }
 
-bool ParkingSystem::cancelRequest(ParkingRequest* request) {
+bool ParkingSystem::cancelRequest(const std::string& vehicleID) {
+    std::cout << "\n[CANCEL] Vehicle " << vehicleID << " cancelling request" << std::endl;
+    ParkingRequest* request = findRequestByVehicleID(vehicleID);
     if (request == nullptr) {
+        std::cout << "[ERROR] Request not found for Vehicle " << vehicleID << std::endl;
         return false;
     }
-    
     RequestState oldState = request->getCurrentStatus();
-    
     if (!request->updateState(RequestState::CANCELLED)) {
-        std::cout << "Cannot cancel request in current state" << std::endl;
+        std::cout << "[ERROR] Cannot cancel in current state" << std::endl;
         return false;
     }
-    
-    std::cout << "Request for Vehicle " << request->getVehicleID() 
-              << " has been cancelled" << std::endl;
-    
+    std::cout << "[SUCCESS] Request cancelled for Vehicle " << vehicleID << std::endl;
     return true;
 }
 
-// ========================================================================
-// ROLLBACK OPERATIONS
-// ========================================================================
-
-bool ParkingSystem::rollbackLastOperations(int k) {
+bool ParkingSystem::rollbackOperations(int k) {
     return rollbackManager->performRollback(k);
 }
 
-// ========================================================================
-// ANALYTICS - MODULE F
-// ========================================================================
-
-double ParkingSystem::calculateAverageDuration() const {
-    if (masterHistoryList.isEmpty()) {
-        std::cout << "No requests in history" << std::endl;
-        return 0.0;
-    }
+DashboardStats ParkingSystem::getDashboardStats() const {
+    DashboardStats stats;
+    stats.totalRequests = getTotalRequests();
+    stats.requestsAllocated = getRequestCountByStatus(RequestState::ALLOCATED);
+    stats.requestsOccupied = getRequestCountByStatus(RequestState::OCCUPIED);
+    stats.requestsReleased = getRequestCountByStatus(RequestState::RELEASED);
+    stats.requestsCancelled = getRequestCountByStatus(RequestState::CANCELLED);
     
+    // Calculate average parking duration
     int totalDuration = 0;
     int validRequests = 0;
-    
     Node<ParkingRequest*>* current = masterHistoryList.getHead();
-    
     while (current != nullptr) {
         ParkingRequest* req = current->data;
-        
         if (req != nullptr) {
             RequestState status = req->getCurrentStatus();
-            
-            // Only count completed requests (RELEASED or OCCUPIED)
             if (status == RequestState::RELEASED || status == RequestState::OCCUPIED) {
-                // Calculate duration from request time to now (simplified: assume 1 hour per request)
-                // In a real system, would subtract release time from request time
-                totalDuration += 60;  // Placeholder: 60 minutes per request
+                totalDuration += 60;
                 validRequests++;
             }
         }
-        
         current = current->next;
     }
+    stats.averageParkingDuration = (validRequests > 0) ? (double)totalDuration / validRequests : 0.0;
     
-    if (validRequests == 0) {
-        return 0.0;
+    stats.totalZones = 0;
+    DoublyLinkedList<Zone*>& zones = engine->getAllZones();
+    Node<Zone*>* zoneNode = zones.getHead();
+    while (zoneNode != nullptr) {
+        stats.totalZones++;
+        zoneNode = zoneNode->next;
     }
-    
-    return (double)totalDuration / validRequests;
+    if (stats.totalZones > 0) {
+        double totalUtil = 0.0;
+        zoneNode = zones.getHead();
+        int zoneCount = 0;
+        while (zoneNode != nullptr) {
+            if (zoneNode->data != nullptr) {
+                int capacity = zoneNode->data->getTotalCapacity();
+                int available = zoneNode->data->getAvailableSlots();
+                if (capacity > 0) {
+                    totalUtil += (double)(capacity - available) / capacity * 100.0;
+                }
+            }
+            zoneNode = zoneNode->next;
+            zoneCount++;
+        }
+        stats.systemUtilization = (zoneCount > 0) ? totalUtil / zoneCount : 0.0;
+    } else {
+        stats.systemUtilization = 0.0;
+    }
+    return stats;
 }
 
-double ParkingSystem::getZoneUtilizationRate(int zoneID) const {
+double ParkingSystem::getZoneUtilization(int zoneID) const {
     DoublyLinkedList<Zone*>& allZones = engine->getAllZones();
-    
     Node<Zone*>* current = allZones.getHead();
-    
     while (current != nullptr) {
         if (current->data != nullptr && current->data->getZoneID() == zoneID) {
             Zone* zone = current->data;
-            
             int totalCapacity = zone->getTotalCapacity();
             int availableSlots = zone->getAvailableSlots();
-            
-            if (totalCapacity == 0) {
-                return 0.0;
-            }
-            
+            if (totalCapacity == 0) return 0.0;
             int occupiedSlots = totalCapacity - availableSlots;
-            double utilizationRate = ((double)occupiedSlots / totalCapacity) * 100.0;
-            
-            return utilizationRate;
+            return ((double)occupiedSlots / totalCapacity) * 100.0;
         }
-        
         current = current->next;
     }
-    
-    std::cout << "Zone " << zoneID << " not found" << std::endl;
     return -1.0;
 }
 
 void ParkingSystem::displayZoneAnalytics() const {
     DoublyLinkedList<Zone*>& allZones = engine->getAllZones();
-    
     if (allZones.getHead() == nullptr) {
         std::cout << "No zones in system" << std::endl;
         return;
     }
-    
     std::cout << "\n========== ZONE ANALYTICS ==========" << std::endl;
-    
     Node<Zone*>* current = allZones.getHead();
-    int zoneIndex = 0;
-    
     while (current != nullptr) {
         if (current->data != nullptr) {
             Zone* zone = current->data;
-            zoneIndex++;
-            
             int totalCapacity = zone->getTotalCapacity();
             int availableSlots = zone->getAvailableSlots();
             int occupiedSlots = totalCapacity - availableSlots;
-            
             double utilizationRate = 0.0;
             if (totalCapacity > 0) {
                 utilizationRate = ((double)occupiedSlots / totalCapacity) * 100.0;
             }
-            
             std::cout << "\nZone " << zone->getZoneID() << ":" << std::endl;
             std::cout << "  Total Capacity: " << totalCapacity << std::endl;
             std::cout << "  Occupied Slots: " << occupiedSlots << std::endl;
             std::cout << "  Available Slots: " << availableSlots << std::endl;
-            std::cout << "  Utilization Rate: " << utilizationRate << "%" << std::endl;
+            std::cout << "  Utilization Rate: " << std::fixed << std::setprecision(2) << utilizationRate << "%" << std::endl;
         }
-        
         current = current->next;
     }
-    
     std::cout << "==================================\n" << std::endl;
+}
+
+void ParkingSystem::displayFullHistory() const {
+    if (masterHistoryList.isEmpty()) {
+        std::cout << "Master history is empty" << std::endl;
+        return;
+    }
+    std::cout << "\n========== MASTER HISTORY ==========" << std::endl;
+    std::cout << "Total Requests: " << getTotalRequests() << std::endl;
+    std::cout << "  - ALLOCATED: " << getRequestCountByStatus(RequestState::ALLOCATED) << std::endl;
+    std::cout << "  - OCCUPIED: " << getRequestCountByStatus(RequestState::OCCUPIED) << std::endl;
+    std::cout << "  - RELEASED: " << getRequestCountByStatus(RequestState::RELEASED) << std::endl;
+    std::cout << "  - CANCELLED: " << getRequestCountByStatus(RequestState::CANCELLED) << std::endl;
+    std::cout << "\nDetailed Entries:" << std::endl;
+    Node<ParkingRequest*>* current = masterHistoryList.getHead();
+    int index = 0;
+    while (current != nullptr) {
+        if (current->data != nullptr) {
+            index++;
+            std::cout << "[" << index << "] ";
+            current->data->displayInfo();
+        }
+        current = current->next;
+    }
+    std::cout << "==================================\n" << std::endl;
+}
+
+void ParkingSystem::displayRollbackStatus() const {
+    std::cout << "\n========== ROLLBACK STATUS ==========" << std::endl;
+    std::cout << "History Size: " << rollbackManager->getHistorySize() << std::endl;
+    std::cout << "Total Rollbacks Performed: " << rollbackManager->getTotalRollbacksPerformed() << std::endl;
+    std::cout << "Has History: " << (rollbackManager->hasHistory() ? "Yes" : "No") << std::endl;
+    std::cout << "===================================\n" << std::endl;
 }
 
 int ParkingSystem::getTotalRequests() const {
@@ -253,55 +267,19 @@ int ParkingSystem::getTotalRequests() const {
 
 int ParkingSystem::getRequestCountByStatus(RequestState status) const {
     int count = 0;
-    
     Node<ParkingRequest*>* current = masterHistoryList.getHead();
-    
     while (current != nullptr) {
         if (current->data != nullptr && current->data->getCurrentStatus() == status) {
             count++;
         }
         current = current->next;
     }
-    
     return count;
 }
 
-void ParkingSystem::displayMasterHistory() const {
-    if (masterHistoryList.isEmpty()) {
-        std::cout << "Master history is empty" << std::endl;
-        return;
-    }
-    
-    std::cout << "\n========== MASTER HISTORY ==========" << std::endl;
-    std::cout << "Total Requests: " << getTotalRequests() << std::endl;
-    std::cout << "  - REQUESTED: " << getRequestCountByStatus(RequestState::REQUESTED) << std::endl;
-    std::cout << "  - ALLOCATED: " << getRequestCountByStatus(RequestState::ALLOCATED) << std::endl;
-    std::cout << "  - OCCUPIED: " << getRequestCountByStatus(RequestState::OCCUPIED) << std::endl;
-    std::cout << "  - RELEASED: " << getRequestCountByStatus(RequestState::RELEASED) << std::endl;
-    std::cout << "  - CANCELLED: " << getRequestCountByStatus(RequestState::CANCELLED) << std::endl;
-    
-    std::cout << "\nAverage Duration: " << calculateAverageDuration() << " minutes" << std::endl;
-    
-    std::cout << "\nRequest Details:" << std::endl;
-    
-    Node<ParkingRequest*>* current = masterHistoryList.getHead();
-    int index = 0;
-    
-    while (current != nullptr) {
-        if (current->data != nullptr) {
-            index++;
-            std::cout << "\n[" << index << "] ";
-            current->data->displayInfo();
-        }
-        current = current->next;
-    }
-    
-    std::cout << "\n==================================\n" << std::endl;
+int ParkingSystem::getActiveRequestCount() const {
+    return activeRequests.getSize();
 }
-
-// ========================================================================
-// GETTERS
-// ========================================================================
 
 AllocationEngine* ParkingSystem::getEngine() const {
     return engine;
@@ -315,6 +293,6 @@ DoublyLinkedList<ParkingRequest*>& ParkingSystem::getMasterHistory() {
     return masterHistoryList;
 }
 
-int ParkingSystem::getMasterHistorySize() const {
-    return masterHistoryList.getSize();
+DoublyLinkedList<ParkingRequest*>& ParkingSystem::getActiveRequests() {
+    return activeRequests;
 }
