@@ -1,4 +1,7 @@
 #include "include/Common.h"
+#include "include/Node.h"
+#include "include/LinkedList.h"
+#include "include/Stack.h"
 #include "include/Zone.h"
 #include "include/ParkingArea.h"
 #include "include/ParkingSlot.h"
