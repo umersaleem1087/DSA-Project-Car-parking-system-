@@ -1,8 +1,10 @@
 #ifndef PARKINGAREA_H
 #define PARKINGAREA_H
 
-#include "LinkedList.h"
-#include "ParkingSlot.h"
+#include <vector>
+
+// Forward declarations
+class ParkingSlot;
 
 // ============================================================================
 // PARKING AREA CLASS
@@ -10,7 +12,7 @@
 class ParkingArea {
 private:
     int areaID;
-    DoublyLinkedList<ParkingSlot*> slots;
+    std::vector<ParkingSlot*> slots;  // Use std::vector instead
     int totalSlots;
     int availableSlots;
 
@@ -34,7 +36,7 @@ public:
     int getAreaID() const;
     int getTotalSlots() const;
     int getAvailableSlots() const;
-    DoublyLinkedList<ParkingSlot*>& getSlotsList();
+    std::vector<ParkingSlot*>& getSlotsList();
     
     // ========================================================================
     // UTILITY METHODS

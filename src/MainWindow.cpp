@@ -1,4 +1,7 @@
 #include "MainWindow.h"
+#include "ParkingSystem.h"
+#include "Zone.h"
+#include "ParkingRequest.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -19,9 +22,9 @@ MainWindow::MainWindow(QWidget *parent)
     parkingSystem = new ParkingSystem();
     
     // Add sample zones
-    parkingSystem->addZone(new Zone(1, 2, 5));  // Zone 1: 2 Areas, 5 Slots each
-    parkingSystem->addZone(new Zone(2, 1, 10)); // Zone 2: 1 Area, 10 Slots
-    parkingSystem->addZone(new Zone(3, 3, 8));  // Zone 3: 3 Areas, 8 Slots each
+    parkingSystem->addZone(new Zone(1));  // Zone 1
+    parkingSystem->addZone(new Zone(2));  // Zone 2
+    parkingSystem->addZone(new Zone(3));  // Zone 3
     
     setupUI();
     updateZoneList();

@@ -1,31 +1,23 @@
-#include <iostream>
-#include "ParkingSystem.h"
-#include "Vehicle.h"
-#include "ParkingRequest.h"
+#include <QApplication>
+#include "MainWindow.h"
+#include <windows.h>
 
-int main() {
-    std::cout << "=== DSA Parking System Starting ===" << std::endl;
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    MainWindow window;
+    window.show();
+    return app.exec();
+}
 
-    // 1. Initialize System
-    ParkingSystem citySystem;
+// Windows entry point wrapper
+extern "C" {
+    // Define the variables that Qt's entry point expects
+    int __argc;
+    char **__argv;
 
-    // 2. Create Infrastructure
-    // Zone 1: 2 Areas, 5 Slots per Area
-    citySystem.addZone(Zone(1, 2, 5)); 
-    // Zone 2: 1 Area, 10 Slots per Area
-    citySystem.addZone(Zone(2, 1, 10));
-
-    // 3. Create Traffic
-    Vehicle v1(101, 1); // Wants Zone 1
-    ParkingRequest req1(1, v1);
-
-    Vehicle v2(202, 1); // Wants Zone 1
-    ParkingRequest req2(2, v2);
-
-    // 4. Process
-    citySystem.processRequest(req1);
-    citySystem.processRequest(req2);
-
-    std::cout << "=== System Simulation Finished ===" << std::endl;
-    return 0;
+    // Windows main function
+    int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                       LPSTR lpCmdLine, int nCmdShow) {
+        return main(__argc, __argv);
+    }
 }

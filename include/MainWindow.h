@@ -11,8 +11,11 @@
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QProgressBar>
-#include "ParkingSystem.h"
-#include "Vehicle.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+
+// Forward declarations to avoid MOC issues
+class ParkingSystem;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

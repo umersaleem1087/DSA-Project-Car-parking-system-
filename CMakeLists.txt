@@ -26,7 +26,7 @@ set(CORE_SOURCES
 
 # UI source files
 set(UI_SOURCES
-    src/main-qt.cpp
+    src/main.cpp
     src/MainWindow.cpp
 )
 

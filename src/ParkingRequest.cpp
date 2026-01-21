@@ -1,35 +1,70 @@
 #include "ParkingRequest.h"
+#include <iostream>
 
-ParkingRequest::ParkingRequest(int rID, Vehicle v) 
-    : requestID(rID), vehicle(v), state(REQUESTED), allocatedSlotID(-1) {}
+ParkingRequest::ParkingRequest(const std::string& vID, int zoneID) 
+    : vehicleID(vID), requestedZoneID(zoneID), currentStatus(RequestState::REQUESTED), penaltyCost(0.0) {
+    // Initialize request time to current time (simplified)
+}
 
-int ParkingRequest::getID() const { return requestID; }
-Vehicle ParkingRequest::getVehicle() const { return vehicle; }
-RequestState ParkingRequest::getState() const { return state; }
-int ParkingRequest::getAllocatedSlotID() const { return allocatedSlotID; }
-void ParkingRequest::setAllocatedSlot(int slotID) { allocatedSlotID = slotID; }
+ParkingRequest::~ParkingRequest() {}
 
-bool ParkingRequest::transitionTo(RequestState newState) {
-    // Strict lifecycle enforcement [cite: 44-50]
-    bool valid = false;
-    if (state == REQUESTED && (newState == ALLOCATED || newState == CANCELLED)) valid = true;
-    else if (state == ALLOCATED && (newState == OCCUPIED || newState == CANCELLED)) valid = true;
-    else if (state == OCCUPIED && newState == RELEASED) valid = true;
+bool ParkingRequest::isValidTransition(RequestState from, RequestState to) {
+    if (from == RequestState::REQUESTED && (to == RequestState::ALLOCATED || to == RequestState::CANCELLED)) return true;
+    if (from == RequestState::ALLOCATED && (to == RequestState::OCCUPIED || to == RequestState::CANCELLED)) return true;
+    if (from == RequestState::OCCUPIED && to == RequestState::RELEASED) return true;
+    if (from == RequestState::RELEASED && to == RequestState::REQUESTED) return true;
+    return false;
+}
 
-    if (valid) {
-        state = newState;
+bool ParkingRequest::updateState(RequestState newState) {
+    if (isValidTransition(currentStatus, newState)) {
+        currentStatus = newState;
         return true;
     }
     return false;
 }
 
-std::string ParkingRequest::getStateString() const {
+std::string ParkingRequest::getVehicleID() const { 
+    return vehicleID; 
+}
+
+int ParkingRequest::getRequestedZoneID() const { 
+    return requestedZoneID; 
+}
+
+DateTime ParkingRequest::getRequestTime() const { 
+    return requestTime; 
+}
+
+RequestState ParkingRequest::getCurrentStatus() const { 
+    return currentStatus; 
+}
+
+double ParkingRequest::getPenaltyCost() const { 
+    return penaltyCost; 
+}
+
+void ParkingRequest::setPenaltyCost(double cost) { 
+    penaltyCost = cost; 
+}
+
+void ParkingRequest::addPenaltyCost(double cost) { 
+    penaltyCost += cost; 
+}
+
+void ParkingRequest::displayInfo() const {
+    std::cout << "Vehicle ID: " << vehicleID << ", Zone: " << requestedZoneID 
+              << ", Status: " << statusToString(currentStatus) 
+              << ", Penalty: " << penaltyCost << std::endl;
+}
+
+std::string ParkingRequest::statusToString(RequestState state) const {
     switch(state) {
-        case REQUESTED: return "REQUESTED";
-        case ALLOCATED: return "ALLOCATED";
-        case OCCUPIED: return "OCCUPIED";
-        case RELEASED: return "RELEASED";
-        case CANCELLED: return "CANCELLED";
+        case RequestState::REQUESTED: return "REQUESTED";
+        case RequestState::ALLOCATED: return "ALLOCATED";
+        case RequestState::OCCUPIED: return "OCCUPIED";
+        case RequestState::RELEASED: return "RELEASED";
+        case RequestState::CANCELLED: return "CANCELLED";
         default: return "UNKNOWN";
     }
 }

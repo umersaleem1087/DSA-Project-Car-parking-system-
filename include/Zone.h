@@ -2,10 +2,10 @@
 #define ZONE_H
 
 #include "LinkedList.h"
-#include "ParkingArea.h"
 
-// Forward declaration to avoid circular dependency
-class Zone;
+// Forward declarations
+class ParkingArea;
+class ParkingSlot;
 
 // ============================================================================
 // ZONE CLASS

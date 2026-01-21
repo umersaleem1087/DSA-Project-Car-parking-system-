@@ -1,0 +1,11 @@
+release/ParkingSlot.o
+release/ParkingArea.o
+release/ParkingRequest.o
+release/AllocationEngine.o
+release/Vehicle.o
+release/Zone.o
+release/RollbackManager.o
+release/ParkingSystem.o
+release/main-qt.o
+release/MainWindow.o
+release/moc_MainWindow.o
