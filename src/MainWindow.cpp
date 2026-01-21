@@ -38,29 +38,42 @@ void MainWindow::setupUI() {
     
     QTabWidget* tabWidget = new QTabWidget(this);
     
-    // Create tabs
-    createRequestTab();
-    createDashboardTab();
-    createHistoryTab();
-    createAnalyticsTab();
-    createRollbackTab();
+    // Create tab widgets
+    QWidget* requestTab = new QWidget();
+    QWidget* dashboardTab = new QWidget();
+    QWidget* historyTab = new QWidget();
+    QWidget* analyticsTab = new QWidget();
+    QWidget* rollbackTab = new QWidget();
+    
+    // Setup each tab
+    QVBoxLayout* requestLayout = new QVBoxLayout(requestTab);
+    setupRequestTab(requestTab, requestLayout);
+    
+    QVBoxLayout* dashboardLayout = new QVBoxLayout(dashboardTab);
+    setupDashboardTab(dashboardTab, dashboardLayout);
+    
+    QVBoxLayout* historyLayout = new QVBoxLayout(historyTab);
+    setupHistoryTab(historyTab, historyLayout);
+    
+    QVBoxLayout* analyticsLayout = new QVBoxLayout(analyticsTab);
+    setupAnalyticsTab(analyticsTab, analyticsLayout);
+    
+    QVBoxLayout* rollbackLayout = new QVBoxLayout(rollbackTab);
+    setupRollbackTab(rollbackTab, rollbackLayout);
     
     // Add tabs to widget
-    tabWidget->addTab(createRequestTab(), "Parking Requests");
-    tabWidget->addTab(createDashboardTab(), "Dashboard");
-    tabWidget->addTab(createHistoryTab(), "History");
-    tabWidget->addTab(createAnalyticsTab(), "Analytics");
-    tabWidget->addTab(createRollbackTab(), "Rollback");
+    tabWidget->addTab(requestTab, "Parking Requests");
+    tabWidget->addTab(dashboardTab, "Dashboard");
+    tabWidget->addTab(historyTab, "History");
+    tabWidget->addTab(analyticsTab, "Analytics");
+    tabWidget->addTab(rollbackTab, "Rollback");
     
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
     mainLayout->addWidget(tabWidget);
     centralWidget->setLayout(mainLayout);
 }
 
-void MainWindow::createRequestTab() {
-    QWidget* requestTab = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(requestTab);
-    
+void MainWindow::setupRequestTab(QWidget* requestTab, QVBoxLayout* layout) {
     // Create Request Section
     QGroupBox* createReqGroup = new QGroupBox("Create Parking Request", requestTab);
     QGridLayout* createLayout = new QGridLayout(createReqGroup);
@@ -121,9 +134,7 @@ void MainWindow::createRequestTab() {
     layout->addStretch();
 }
 
-void MainWindow::createDashboardTab() {
-    QWidget* dashboardTab = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(dashboardTab);
+void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     
     QGroupBox* statsGroup = new QGroupBox("System Statistics", dashboardTab);
     QGridLayout* statsLayout = new QGridLayout(statsGroup);
@@ -180,10 +191,7 @@ void MainWindow::createDashboardTab() {
     layout->addStretch();
 }
 
-void MainWindow::createHistoryTab() {
-    QWidget* historyTab = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(historyTab);
-    
+void MainWindow::setupHistoryTab(QWidget* historyTab, QVBoxLayout* layout) {
     QGroupBox* historyGroup = new QGroupBox("Request History", historyTab);
     QVBoxLayout* historyLayout = new QVBoxLayout(historyGroup);
     
@@ -210,10 +218,7 @@ void MainWindow::createHistoryTab() {
     layout->addWidget(detailsGroup, 1);
 }
 
-void MainWindow::createAnalyticsTab() {
-    QWidget* analyticsTab = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(analyticsTab);
-    
+void MainWindow::setupAnalyticsTab(QWidget* analyticsTab, QVBoxLayout* layout) {
     QGroupBox* analyticsGroup = new QGroupBox("Zone Analytics", analyticsTab);
     QVBoxLayout* analyticsLayout = new QVBoxLayout(analyticsGroup);
     
@@ -232,9 +237,7 @@ void MainWindow::createAnalyticsTab() {
     layout->addStretch();
 }
 
-void MainWindow::createRollbackTab() {
-    QWidget* rollbackTab = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(rollbackTab);
+void MainWindow::setupRollbackTab(QWidget* rollbackTab, QVBoxLayout* layout) {
     
     QGroupBox* rollbackGroup = new QGroupBox("Rollback Operations", rollbackTab);
     QGridLayout* rollbackLayout = new QGridLayout(rollbackGroup);

@@ -40,11 +40,11 @@ private slots:
 private:
     // Initialize UI
     void setupUI();
-    void createRequestTab();
-    void createDashboardTab();
-    void createHistoryTab();
-    void createAnalyticsTab();
-    void createRollbackTab();
+    void setupRequestTab(QWidget* requestTab, QVBoxLayout* layout);
+    void setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout);
+    void setupHistoryTab(QWidget* historyTab, QVBoxLayout* layout);
+    void setupAnalyticsTab(QWidget* analyticsTab, QVBoxLayout* layout);
+    void setupRollbackTab(QWidget* rollbackTab, QVBoxLayout* layout);
     
     // Update UI
     void updateDashboard();
