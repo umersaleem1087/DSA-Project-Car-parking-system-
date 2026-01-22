@@ -33,12 +33,12 @@ public:
         std::cout << "📋 Initializing System...\n";
         
         // Add zones
-        parkingSystem->addZone(new Zone(1, 2, 5));  // Zone 1: 2 Areas, 5 Slots
-        parkingSystem->addZone(new Zone(2, 1, 10)); // Zone 2: 1 Area, 10 Slots
-        parkingSystem->addZone(new Zone(3, 3, 8));  // Zone 3: 3 Areas, 8 Slots
+        parkingSystem->addZone(new Zone(1));  // Zone 1
+        parkingSystem->addZone(new Zone(2)); // Zone 2
+        parkingSystem->addZone(new Zone(3));  // Zone 3
         
         std::cout << "✅ System initialized successfully!\n";
-        std::cout << "✅ Zones configured: 3 zones with 44 total parking slots\n\n";
+        std::cout << "✅ Zones configured: 3 zones with parking slots\n\n";
     }
     
     void displayMainMenu() {
@@ -101,6 +101,23 @@ public:
         std::cout << "Enter Vehicle ID: ";
         std::getline(std::cin, vehicleID);
         
+        if (vehicleID.empty()) {
+            std::cout << "❌ Invalid input! Vehicle ID cannot be empty.\n";
+            return;
+        }
+        
+        ParkingRequest* request = parkingSystem->getRequestByVehicleID(vehicleID);
+        if (!request) {
+            std::cout << "❌ Vehicle " << vehicleID << " has no active parking request!\n";
+            return;
+        }
+        
+        if (request->getCurrentStatus() != RequestState::ALLOCATED) {
+            std::cout << "❌ Vehicle " << vehicleID << " request is not in ALLOCATED state!\n";
+            std::cout << "   Current status: " << request->statusToString(request->getCurrentStatus()) << "\n";
+            return;
+        }
+        
         bool success = parkingSystem->occupyRequest(vehicleID);
         
         if (success) {
@@ -117,6 +134,17 @@ public:
         std::string vehicleID;
         std::cout << "Enter Vehicle ID: ";
         std::getline(std::cin, vehicleID);
+        
+        if (vehicleID.empty()) {
+            std::cout << "❌ Invalid input! Vehicle ID cannot be empty.\n";
+            return;
+        }
+        
+        ParkingRequest* request = parkingSystem->getRequestByVehicleID(vehicleID);
+        if (!request) {
+            std::cout << "❌ Vehicle " << vehicleID << " not found in system!\n";
+            return;
+        }
         
         bool success = parkingSystem->releaseRequest(vehicleID);
         
@@ -178,6 +206,28 @@ public:
             }
         }
         std::cout << "] " << utilPercent << "%\n";
+        
+        // Display available slots per zone
+        std::cout << "\n🅿️  AVAILABLE SLOTS BY ZONE/AREA:\n";
+        std::cout << "──────────────────────────────────────────────────\n";
+        std::cout << std::left << std::setw(8) << "Zone ID"
+                  << std::setw(15) << "Total Slots"
+                  << std::setw(15) << "Available"
+                  << std::setw(15) << "Occupied"
+                  << "Utilization %\n";
+        std::cout << "──────────────────────────────────────────────────\n";
+        
+        auto zoneNode = stats.zoneStatuses.getHead();
+        while (zoneNode != nullptr) {
+            ZoneSlotStatus zoneStatus = zoneNode->data;
+            std::cout << std::left << std::setw(8) << zoneStatus.zoneID
+                      << std::setw(15) << zoneStatus.totalSlots
+                      << std::setw(15) << zoneStatus.availableSlots
+                      << std::setw(15) << zoneStatus.occupiedSlots
+                      << std::fixed << std::setprecision(1) << zoneStatus.utilization << "%\n";
+            zoneNode = zoneNode->next;
+        }
+        std::cout << "──────────────────────────────────────────────────\n";
     }
     
     void displayZoneAnalytics() {

@@ -11,6 +11,17 @@
 #include "RollbackManager.h"
 
 // ============================================================================
+// ZONE SLOT STATUS STRUCT
+// ============================================================================
+struct ZoneSlotStatus {
+    int zoneID;
+    int totalSlots;
+    int availableSlots;
+    int occupiedSlots;
+    double utilization;
+};
+
+// ============================================================================
 // DASHBOARD STATISTICS STRUCT (For Qt Integration)
 // ============================================================================
 struct DashboardStats {
@@ -22,6 +33,7 @@ struct DashboardStats {
     double averageParkingDuration;
     int totalZones;
     double systemUtilization;
+    DoublyLinkedList<ZoneSlotStatus> zoneStatuses;  // Detailed slot info per zone
     
     void display() const {
         std::cout << "\n========== DASHBOARD STATISTICS ==========" << std::endl;
@@ -71,10 +83,11 @@ public:
     /**
      * Create a parking request for a vehicle in a preferred zone
      * This is the primary entry point for the UI
+     * Prevents duplicate vehicle IDs and same vehicle requesting same slot again
      * 
-     * @param vehicleID - Unique vehicle identifier
+     * @param vehicleID - Unique vehicle identifier (must not already exist in active requests)
      * @param preferredZoneID - Zone ID where user wants to park
-     * @return ParkingRequest* - The created request, or nullptr if failed
+     * @return ParkingRequest* - The created request, or nullptr if failed (vehicle already has active request)
      */
     ParkingRequest* createRequest(const std::string& vehicleID, int preferredZoneID);
     
@@ -96,8 +109,9 @@ public:
     
     /**
      * Release a parking slot (vehicle departs)
+     * Only allows release if vehicle is currently occupying a slot
      * 
-     * @param vehicleID - Vehicle releasing the slot
+     * @param vehicleID - Vehicle releasing the slot (must be in OCCUPIED state)
      * @return bool - Success or failure
      */
     bool releaseRequest(const std::string& vehicleID);

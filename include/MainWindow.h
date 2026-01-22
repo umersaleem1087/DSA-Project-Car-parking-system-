@@ -80,7 +80,7 @@ private:
     QLabel* cancelledLabel;
     QLabel* averageDurationLabel;
     QLabel* utilizationLabel;
-    QProgressBar* utilizationBar;
+    QTableWidget* zoneAvailabilityTable;
     QPushButton* refreshDashboardBtn;
     
     // =====================================================

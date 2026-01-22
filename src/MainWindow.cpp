@@ -163,8 +163,6 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     
     QLabel* utilizationTitleLabel = new QLabel("System Utilization:");
     utilizationLabel = new QLabel("0%");
-    utilizationBar = new QProgressBar();
-    utilizationBar->setValue(0);
     
     statsLayout->addWidget(totalReqTitleLabel, 0, 0);
     statsLayout->addWidget(totalRequestsLabel, 0, 1);
@@ -183,9 +181,21 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     
     statsLayout->addWidget(utilizationTitleLabel, 3, 0);
     statsLayout->addWidget(utilizationLabel, 3, 1);
-    statsLayout->addWidget(utilizationBar, 3, 2, 1, 2);
     
     layout->addWidget(statsGroup);
+    
+    // Zone Availability Group
+    QGroupBox* zoneAvailGroup = new QGroupBox("Available Slots by Zone/Area", dashboardTab);
+    QVBoxLayout* zoneAvailLayout = new QVBoxLayout(zoneAvailGroup);
+    
+    zoneAvailabilityTable = new QTableWidget();
+    zoneAvailabilityTable->setColumnCount(5);
+    zoneAvailabilityTable->setHorizontalHeaderLabels(QStringList() << "Zone ID" << "Total Slots" << "Available" << "Occupied" << "Utilization %");
+    zoneAvailabilityTable->horizontalHeader()->setStretchLastSection(true);
+    zoneAvailabilityTable->setMaximumHeight(200);
+    
+    zoneAvailLayout->addWidget(zoneAvailabilityTable);
+    layout->addWidget(zoneAvailGroup);
     
     refreshDashboardBtn = new QPushButton("Refresh Dashboard");
     connect(refreshDashboardBtn, &QPushButton::clicked, this, &MainWindow::onRefreshDashboard);
@@ -293,9 +303,20 @@ void MainWindow::onCreateRequest() {
         updateDashboard();
         updateActiveRequestsList();
     } else {
-        logMessage(QString("✗ Failed to create request for Vehicle %1 in Zone %2")
-                   .arg(vehicleID).arg(zoneID));
-        QMessageBox::critical(this, "Request Failed", "Could not create parking request. Zone may be full.");
+        // Check if vehicle already has an active request
+        ParkingRequest* existingRequest = parkingSystem->getRequestByVehicleID(vehicleID.toStdString());
+        if (existingRequest) {
+            QString errorMsg = QString("Vehicle %1 already has an active parking request!\n\n"
+                                     "A vehicle cannot have multiple active requests.\n"
+                                     "Please release or cancel the existing request first.")
+                                .arg(vehicleID);
+            QMessageBox::critical(this, "Duplicate Vehicle Request", errorMsg);
+            logMessage(QString("✗ Vehicle %1 already has an active request").arg(vehicleID));
+        } else {
+            logMessage(QString("✗ Failed to create request for Vehicle %1 in Zone %2 (Zone may be full)")
+                       .arg(vehicleID).arg(zoneID));
+            QMessageBox::critical(this, "Request Failed", "Could not create parking request. Zone may be full.");
+        }
     }
 }
 
@@ -304,6 +325,28 @@ void MainWindow::onOccupyParking() {
     
     if (vehicleID.isEmpty()) {
         QMessageBox::warning(this, "Input Error", "Please enter a vehicle ID");
+        return;
+    }
+    
+    // Check if vehicle has an active request
+    ParkingRequest* request = parkingSystem->getRequestByVehicleID(vehicleID.toStdString());
+    if (!request) {
+        QMessageBox::warning(this, "Vehicle Not Found", 
+            QString("Vehicle %1 does not have a parking request in the system.").arg(vehicleID));
+        logMessage(QString("✗ Vehicle %1 not found in system").arg(vehicleID));
+        return;
+    }
+    
+    // Check if request is in ALLOCATED state
+    if (request->getCurrentStatus() != RequestState::ALLOCATED) {
+        std::string statusStr = request->statusToString(request->getCurrentStatus());
+        QString errorMsg = QString("Vehicle %1 request is not in ALLOCATED state.\n\n"
+                                  "Current Status: %2\n\n"
+                                  "A vehicle must have an allocated slot before occupying it.")
+                            .arg(vehicleID, QString::fromStdString(statusStr));
+        QMessageBox::warning(this, "Cannot Occupy Slot", errorMsg);
+        logMessage(QString("✗ Cannot occupy for Vehicle %1 - Status: %2")
+                  .arg(vehicleID, QString::fromStdString(statusStr)));
         return;
     }
     
@@ -324,6 +367,28 @@ void MainWindow::onReleaseParking() {
     
     if (vehicleID.isEmpty()) {
         QMessageBox::warning(this, "Input Error", "Please enter a vehicle ID");
+        return;
+    }
+    
+    // Check if vehicle exists in the system
+    ParkingRequest* request = parkingSystem->getRequestByVehicleID(vehicleID.toStdString());
+    if (!request) {
+        QMessageBox::warning(this, "Vehicle Not Found", 
+            QString("Vehicle %1 does not have an active parking request in the system.").arg(vehicleID));
+        logMessage(QString("✗ Vehicle %1 not found in system").arg(vehicleID));
+        return;
+    }
+    
+    // Check if vehicle is actually occupying a slot
+    if (request->getCurrentStatus() != RequestState::OCCUPIED) {
+        std::string statusStr = request->statusToString(request->getCurrentStatus());
+        QString errorMsg = QString("Vehicle %1 is not currently occupying a parking slot.\n\n"
+                                  "Current Status: %2\n\n"
+                                  "Only vehicles with OCCUPIED status can be released.")
+                            .arg(vehicleID, QString::fromStdString(statusStr));
+        QMessageBox::warning(this, "Cannot Release Vehicle", errorMsg);
+        logMessage(QString("✗ Cannot release Vehicle %1 - Status: %2")
+                  .arg(vehicleID, QString::fromStdString(statusStr)));
         return;
     }
     
@@ -376,7 +441,24 @@ void MainWindow::updateDashboard() {
     
     int utilization = static_cast<int>(stats.systemUtilization);
     utilizationLabel->setText(QString::number(utilization) + "%");
-    utilizationBar->setValue(utilization);
+    
+    // Populate zone availability table
+    zoneAvailabilityTable->setRowCount(0);
+    auto zoneNode = stats.zoneStatuses.getHead();
+    int row = 0;
+    while (zoneNode != nullptr) {
+        ZoneSlotStatus zoneStatus = zoneNode->data;
+        
+        zoneAvailabilityTable->insertRow(row);
+        zoneAvailabilityTable->setItem(row, 0, new QTableWidgetItem(QString::number(zoneStatus.zoneID)));
+        zoneAvailabilityTable->setItem(row, 1, new QTableWidgetItem(QString::number(zoneStatus.totalSlots)));
+        zoneAvailabilityTable->setItem(row, 2, new QTableWidgetItem(QString::number(zoneStatus.availableSlots)));
+        zoneAvailabilityTable->setItem(row, 3, new QTableWidgetItem(QString::number(zoneStatus.occupiedSlots)));
+        zoneAvailabilityTable->setItem(row, 4, new QTableWidgetItem(QString::number(zoneStatus.utilization, 'f', 1) + "%"));
+        
+        row++;
+        zoneNode = zoneNode->next;
+    }
 }
 
 void MainWindow::updateZoneList() {
@@ -396,19 +478,33 @@ void MainWindow::updateActiveRequestsList() {
 void MainWindow::onShowZoneAnalytics() {
     zoneAnalyticsTable->setRowCount(0);
     
-    for (int zoneID = 1; zoneID <= 3; ++zoneID) {
-        double utilization = parkingSystem->getZoneUtilization(zoneID);
-        
-        int row = zoneAnalyticsTable->rowCount();
-        zoneAnalyticsTable->insertRow(row);
-        
-        zoneAnalyticsTable->setItem(row, 0, new QTableWidgetItem(QString::number(zoneID)));
-        zoneAnalyticsTable->setItem(row, 1, new QTableWidgetItem("Variable"));
-        zoneAnalyticsTable->setItem(row, 2, new QTableWidgetItem("Variable"));
-        zoneAnalyticsTable->setItem(row, 3, new QTableWidgetItem(QString::number(utilization, 'f', 2) + "%"));
+    DashboardStats stats = parkingSystem->getDashboardStats();
+    
+    // Set header if not already set
+    if (zoneAnalyticsTable->columnCount() < 5) {
+        zoneAnalyticsTable->setColumnCount(5);
+        QStringList headers = {"Zone ID", "Total Slots", "Available", "Occupied", "Utilization %"};
+        zoneAnalyticsTable->setHorizontalHeaderLabels(headers);
     }
     
-    logMessage("Zone analytics refreshed");
+    // Populate with actual zone data
+    auto zoneNode = stats.zoneStatuses.getHead();
+    int row = 0;
+    while (zoneNode != nullptr) {
+        ZoneSlotStatus zoneStatus = zoneNode->data;
+        
+        zoneAnalyticsTable->insertRow(row);
+        zoneAnalyticsTable->setItem(row, 0, new QTableWidgetItem(QString::number(zoneStatus.zoneID)));
+        zoneAnalyticsTable->setItem(row, 1, new QTableWidgetItem(QString::number(zoneStatus.totalSlots)));
+        zoneAnalyticsTable->setItem(row, 2, new QTableWidgetItem(QString::number(zoneStatus.availableSlots)));
+        zoneAnalyticsTable->setItem(row, 3, new QTableWidgetItem(QString::number(zoneStatus.occupiedSlots)));
+        zoneAnalyticsTable->setItem(row, 4, new QTableWidgetItem(QString::number(zoneStatus.utilization, 'f', 1) + "%"));
+        
+        row++;
+        zoneNode = zoneNode->next;
+    }
+    
+    logMessage("Zone analytics updated with available slots information");
 }
 
 void MainWindow::onShowFullHistory() {

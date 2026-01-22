@@ -57,3 +57,7 @@ ParkingSlot* AllocationEngine::allocateSlot(Vehicle* vehicle, ParkingRequest* pa
 
     return nullptr; // No slot available anywhere
 }
+
+DoublyLinkedList<Zone*>& AllocationEngine::getAllZones() {
+    return allZones;
+}
