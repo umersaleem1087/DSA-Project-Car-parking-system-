@@ -581,6 +581,12 @@ void MainWindow::onOccupyParking() {
         
         if (success) {
             logMessage(QString("✓ Vehicle %1 occupied parking slot").arg(vehicleID));
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Success");
+            msgBox.setText(QString("✓ Vehicle %1 parked successfully.").arg(vehicleID));
+            msgBox.setIcon(QMessageBox::NoIcon);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
             vehicleIDForOpsInput->clear();
             updateDashboard();
         } else {
@@ -631,6 +637,12 @@ void MainWindow::onReleaseParking() {
         
         if (success) {
             logMessage(QString("✓ Vehicle %1 released parking slot").arg(vehicleID));
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Success");
+            msgBox.setText(QString("✓ Vehicle %1 released successfully.").arg(vehicleID));
+            msgBox.setIcon(QMessageBox::NoIcon);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
             vehicleIDForOpsInput->clear();
             updateDashboard();
         } else {

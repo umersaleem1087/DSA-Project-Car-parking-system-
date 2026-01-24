@@ -16,6 +16,47 @@ private:
 public:
     // Constructor
     DoublyLinkedList() : head(nullptr), tail(nullptr), size(0) {}
+
+    // Deep copy and move support to avoid double frees when returning by value
+    DoublyLinkedList(const DoublyLinkedList& other) : head(nullptr), tail(nullptr), size(0) {
+        Node<T>* current = other.head;
+        while (current != nullptr) {
+            insertBack(current->data);
+            current = current->next;
+        }
+    }
+
+    DoublyLinkedList& operator=(const DoublyLinkedList& other) {
+        if (this != &other) {
+            clear();
+            Node<T>* current = other.head;
+            while (current != nullptr) {
+                insertBack(current->data);
+                current = current->next;
+            }
+        }
+        return *this;
+    }
+
+    DoublyLinkedList(DoublyLinkedList&& other) noexcept
+        : head(other.head), tail(other.tail), size(other.size) {
+        other.head = nullptr;
+        other.tail = nullptr;
+        other.size = 0;
+    }
+
+    DoublyLinkedList& operator=(DoublyLinkedList&& other) noexcept {
+        if (this != &other) {
+            clear();
+            head = other.head;
+            tail = other.tail;
+            size = other.size;
+            other.head = nullptr;
+            other.tail = nullptr;
+            other.size = 0;
+        }
+        return *this;
+    }
     
     // Destructor
     ~DoublyLinkedList() {
