@@ -52,6 +52,7 @@ private:
     void setupHistoryTab(QWidget* historyTab, QVBoxLayout* layout);
     void setupAnalyticsTab(QWidget* analyticsTab, QVBoxLayout* layout);
     void setupRollbackTab(QWidget* rollbackTab, QVBoxLayout* layout);
+    void applyStylesheet();
     
     // Update UI
     void updateDashboard();

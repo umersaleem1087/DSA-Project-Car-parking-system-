@@ -21,7 +21,10 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), requestLogArea(nullptr), parkingSystem(nullptr) {
     try {
         setWindowTitle("DSA Parking System - Management Interface");
-        setGeometry(100, 100, 1200, 800);
+        setGeometry(100, 100, 1400, 900);
+        
+        // Apply professional stylesheet
+        applyStylesheet();
         
         // Initialize parking system with sample data
         parkingSystem = new ParkingSystem();
@@ -92,6 +95,9 @@ void MainWindow::setupUI() {
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     
+    // Set margins for better spacing
+    centralWidget->setContentsMargins(10, 10, 10, 10);
+    
     QTabWidget* tabWidget = new QTabWidget(this);
     
     // Create tab widgets
@@ -101,34 +107,52 @@ void MainWindow::setupUI() {
     QWidget* analyticsTab = new QWidget();
     QWidget* rollbackTab = new QWidget();
     
-    // Setup each tab
+    // Setup each tab with padding
+    requestTab->setContentsMargins(5, 5, 5, 5);
+    dashboardTab->setContentsMargins(5, 5, 5, 5);
+    historyTab->setContentsMargins(5, 5, 5, 5);
+    analyticsTab->setContentsMargins(5, 5, 5, 5);
+    rollbackTab->setContentsMargins(5, 5, 5, 5);
+    
     QVBoxLayout* requestLayout = new QVBoxLayout(requestTab);
+    requestLayout->setSpacing(10);
+    requestLayout->setContentsMargins(10, 10, 10, 10);
     setupRequestTab(requestTab, requestLayout);
     
     QVBoxLayout* dashboardLayout = new QVBoxLayout(dashboardTab);
+    dashboardLayout->setSpacing(10);
+    dashboardLayout->setContentsMargins(10, 10, 10, 10);
     setupDashboardTab(dashboardTab, dashboardLayout);
     
     QVBoxLayout* historyLayout = new QVBoxLayout(historyTab);
+    historyLayout->setSpacing(10);
+    historyLayout->setContentsMargins(10, 10, 10, 10);
     setupHistoryTab(historyTab, historyLayout);
     
     QVBoxLayout* analyticsLayout = new QVBoxLayout(analyticsTab);
+    analyticsLayout->setSpacing(10);
+    analyticsLayout->setContentsMargins(10, 10, 10, 10);
     setupAnalyticsTab(analyticsTab, analyticsLayout);
     
     QVBoxLayout* rollbackLayout = new QVBoxLayout(rollbackTab);
+    rollbackLayout->setSpacing(10);
+    rollbackLayout->setContentsMargins(10, 10, 10, 10);
     setupRollbackTab(rollbackTab, rollbackLayout);
     
     // Add tabs to widget
-    tabWidget->addTab(requestTab, "Parking Requests");
-    tabWidget->addTab(dashboardTab, "Dashboard");
-    tabWidget->addTab(historyTab, "History");
-    tabWidget->addTab(analyticsTab, "Analytics");
-    tabWidget->addTab(rollbackTab, "Rollback");
+    tabWidget->addTab(requestTab, "📋 Parking Requests");
+    tabWidget->addTab(dashboardTab, "📊 Dashboard");
+    tabWidget->addTab(historyTab, "📜 History");
+    tabWidget->addTab(analyticsTab, "📈 Analytics");
+    tabWidget->addTab(rollbackTab, "⏮️ Rollback");
     
     // Auto-refresh dashboard when tab is selected
     connect(tabWidget, QOverload<int>::of(&QTabWidget::currentChanged), 
             this, &MainWindow::onDashboardTabChanged);
     
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setSpacing(0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->addWidget(tabWidget);
     centralWidget->setLayout(mainLayout);
 }
@@ -137,20 +161,27 @@ void MainWindow::setupRequestTab(QWidget* requestTab, QVBoxLayout* layout) {
     // Create Zone Section
     QGroupBox* createZoneGroup = new QGroupBox("Create New Zone", requestTab);
     QGridLayout* zoneLayout = new QGridLayout(createZoneGroup);
+    zoneLayout->setSpacing(8);
     
     QLabel* newZoneIDLabel = new QLabel("Zone ID:");
+    newZoneIDLabel->setStyleSheet("font-weight: bold;");
     newZoneIDSpinBox = new QSpinBox();
     newZoneIDSpinBox->setMinimum(1);
     newZoneIDSpinBox->setMaximum(100);
     newZoneIDSpinBox->setValue(1);
+    newZoneIDSpinBox->setMinimumWidth(100);
     
     QLabel* numSlotsLabel = new QLabel("Number of Slots:");
+    numSlotsLabel->setStyleSheet("font-weight: bold;");
     numSlotsSpinBox = new QSpinBox();
     numSlotsSpinBox->setMinimum(1);
     numSlotsSpinBox->setMaximum(1000);
     numSlotsSpinBox->setValue(20);
+    numSlotsSpinBox->setMinimumWidth(100);
     
-    createZoneBtn = new QPushButton("Create Zone");
+    createZoneBtn = new QPushButton("➕ Create Zone");
+    createZoneBtn->setMinimumHeight(35);
+    createZoneBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(createZoneBtn, &QPushButton::clicked, this, &MainWindow::onCreateZone);
     
     zoneLayout->addWidget(newZoneIDLabel, 0, 0);
@@ -158,21 +189,29 @@ void MainWindow::setupRequestTab(QWidget* requestTab, QVBoxLayout* layout) {
     zoneLayout->addWidget(numSlotsLabel, 1, 0);
     zoneLayout->addWidget(numSlotsSpinBox, 1, 1);
     zoneLayout->addWidget(createZoneBtn, 2, 0, 1, 2);
+    zoneLayout->setColumnStretch(1, 1);
     
     layout->addWidget(createZoneGroup);
     
     // Create Request Section
     QGroupBox* createReqGroup = new QGroupBox("Create Parking Request", requestTab);
     QGridLayout* createLayout = new QGridLayout(createReqGroup);
+    createLayout->setSpacing(8);
     
     QLabel* vehicleLabel = new QLabel("Vehicle ID:");
+    vehicleLabel->setStyleSheet("font-weight: bold;");
     vehicleIDInput = new QLineEdit();
-    vehicleIDInput->setPlaceholderText("Enter vehicle ID (e.g., V001)");
+    vehicleIDInput->setPlaceholderText("e.g., V001, CAR-123");
+    vehicleIDInput->setMinimumHeight(30);
     
     QLabel* zoneLabel = new QLabel("Preferred Zone:");
+    zoneLabel->setStyleSheet("font-weight: bold;");
     zoneComboBox = new QComboBox();
+    zoneComboBox->setMinimumHeight(30);
     
-    createRequestBtn = new QPushButton("Create Request");
+    createRequestBtn = new QPushButton("📝 Create Request");
+    createRequestBtn->setMinimumHeight(35);
+    createRequestBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(createRequestBtn, &QPushButton::clicked, this, &MainWindow::onCreateRequest);
     
     createLayout->addWidget(vehicleLabel, 0, 0);
@@ -180,20 +219,28 @@ void MainWindow::setupRequestTab(QWidget* requestTab, QVBoxLayout* layout) {
     createLayout->addWidget(zoneLabel, 1, 0);
     createLayout->addWidget(zoneComboBox, 1, 1);
     createLayout->addWidget(createRequestBtn, 2, 0, 1, 2);
+    createLayout->setColumnStretch(1, 1);
     
     layout->addWidget(createReqGroup);
     
     // Parking Operations Section
     QGroupBox* operationsGroup = new QGroupBox("Parking Operations", requestTab);
     QGridLayout* opsLayout = new QGridLayout(operationsGroup);
+    opsLayout->setSpacing(8);
     
     QLabel* vehicleOpsLabel = new QLabel("Vehicle ID:");
+    vehicleOpsLabel->setStyleSheet("font-weight: bold;");
     vehicleIDForOpsInput = new QLineEdit();
     vehicleIDForOpsInput->setPlaceholderText("Enter vehicle ID");
+    vehicleIDForOpsInput->setMinimumHeight(30);
     
-    occupyBtn = new QPushButton("Occupy Parking Slot");
-    releaseBtn = new QPushButton("Release Parking Slot");
-    cancelBtn = new QPushButton("Cancel Request");
+    occupyBtn = new QPushButton("🅿️ Occupy Slot");
+    releaseBtn = new QPushButton("🚪 Release Slot");
+    cancelBtn = new QPushButton("❌ Cancel Request");
+    
+    occupyBtn->setMinimumHeight(35);
+    releaseBtn->setMinimumHeight(35);
+    cancelBtn->setMinimumHeight(35);
     
     connect(occupyBtn, &QPushButton::clicked, this, &MainWindow::onOccupyParking);
     connect(releaseBtn, &QPushButton::clicked, this, &MainWindow::onReleaseParking);
@@ -204,12 +251,14 @@ void MainWindow::setupRequestTab(QWidget* requestTab, QVBoxLayout* layout) {
     opsLayout->addWidget(occupyBtn, 1, 0);
     opsLayout->addWidget(releaseBtn, 1, 1);
     opsLayout->addWidget(cancelBtn, 2, 0, 1, 2);
+    opsLayout->setColumnStretch(1, 1);
     
     layout->addWidget(operationsGroup);
     
     // Log Area
     QGroupBox* logGroup = new QGroupBox("Operation Log", requestTab);
     QVBoxLayout* logLayout = new QVBoxLayout(logGroup);
+    logLayout->setSpacing(6);
     
     requestLogArea = new QTextEdit();
     requestLogArea->setReadOnly(true);
@@ -225,28 +274,53 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     
     QGroupBox* statsGroup = new QGroupBox("System Statistics", dashboardTab);
     QGridLayout* statsLayout = new QGridLayout(statsGroup);
+    statsLayout->setSpacing(12);
+    
+    // Helper function to style stat labels
+    auto styleStatLabel = [](QLabel* label) {
+        label->setStyleSheet("font-weight: bold; font-size: 13px; color: #2196F3;");
+        label->setMinimumWidth(60);
+    };
+    
+    auto styleStatTitle = [](QLabel* label) {
+        label->setStyleSheet("font-weight: 600; color: #555555;");
+    };
     
     // Statistics Labels
     QLabel* totalReqTitleLabel = new QLabel("Total Requests:");
     totalRequestsLabel = new QLabel("0");
+    styleStatTitle(totalReqTitleLabel);
+    styleStatLabel(totalRequestsLabel);
     
     QLabel* allocatedTitleLabel = new QLabel("Allocated:");
     allocatedLabel = new QLabel("0");
+    styleStatTitle(allocatedTitleLabel);
+    styleStatLabel(allocatedLabel);
     
     QLabel* occupiedTitleLabel = new QLabel("Occupied:");
     occupiedLabel = new QLabel("0");
+    styleStatTitle(occupiedTitleLabel);
+    styleStatLabel(occupiedLabel);
     
     QLabel* releasedTitleLabel = new QLabel("Released:");
     releasedLabel = new QLabel("0");
+    styleStatTitle(releasedTitleLabel);
+    styleStatLabel(releasedLabel);
     
     QLabel* cancelledTitleLabel = new QLabel("Cancelled:");
     cancelledLabel = new QLabel("0");
+    styleStatTitle(cancelledTitleLabel);
+    styleStatLabel(cancelledLabel);
     
     QLabel* avgDurationTitleLabel = new QLabel("Avg Duration (min):");
     averageDurationLabel = new QLabel("0");
+    styleStatTitle(avgDurationTitleLabel);
+    styleStatLabel(averageDurationLabel);
     
     QLabel* utilizationTitleLabel = new QLabel("System Utilization:");
     utilizationLabel = new QLabel("0%");
+    styleStatTitle(utilizationTitleLabel);
+    styleStatLabel(utilizationLabel);
     
     statsLayout->addWidget(totalReqTitleLabel, 0, 0);
     statsLayout->addWidget(totalRequestsLabel, 0, 1);
@@ -269,7 +343,7 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     layout->addWidget(statsGroup);
     
     // Zone Availability Group
-    QGroupBox* zoneAvailGroup = new QGroupBox("Available Slots by Zone/Area", dashboardTab);
+    QGroupBox* zoneAvailGroup = new QGroupBox("Available Slots by Zone", dashboardTab);
     QVBoxLayout* zoneAvailLayout = new QVBoxLayout(zoneAvailGroup);
     
     zoneAvailabilityTable = new QTableWidget();
@@ -277,11 +351,15 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
     zoneAvailabilityTable->setHorizontalHeaderLabels(QStringList() << "Zone ID" << "Total Slots" << "Available" << "Occupied" << "Utilization %");
     zoneAvailabilityTable->horizontalHeader()->setStretchLastSection(true);
     zoneAvailabilityTable->setMaximumHeight(200);
+    zoneAvailabilityTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    zoneAvailabilityTable->setAlternatingRowColors(true);
     
     zoneAvailLayout->addWidget(zoneAvailabilityTable);
     layout->addWidget(zoneAvailGroup);
     
-    refreshDashboardBtn = new QPushButton("Refresh Dashboard");
+    refreshDashboardBtn = new QPushButton("🔄 Refresh Dashboard");
+    refreshDashboardBtn->setMinimumHeight(35);
+    refreshDashboardBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(refreshDashboardBtn, &QPushButton::clicked, this, &MainWindow::onRefreshDashboard);
     layout->addWidget(refreshDashboardBtn);
     
@@ -291,21 +369,26 @@ void MainWindow::setupDashboardTab(QWidget* dashboardTab, QVBoxLayout* layout) {
 void MainWindow::setupHistoryTab(QWidget* historyTab, QVBoxLayout* layout) {
     QGroupBox* historyGroup = new QGroupBox("Request History", historyTab);
     QVBoxLayout* historyLayout = new QVBoxLayout(historyGroup);
+    historyLayout->setSpacing(8);
     
     historyTable = new QTableWidget();
     historyTable->setColumnCount(5);
     historyTable->setHorizontalHeaderLabels(QStringList() << "Request ID" << "Vehicle ID" << "Zone ID" << "Status" << "Timestamp");
     historyTable->horizontalHeader()->setStretchLastSection(true);
     historyTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    historyTable->setAlternatingRowColors(true);
     
     historyLayout->addWidget(historyTable);
     
-    showFullHistoryBtn = new QPushButton("Load Full History");
+    showFullHistoryBtn = new QPushButton("📥 Load Full History");
+    showFullHistoryBtn->setMinimumHeight(35);
+    showFullHistoryBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(showFullHistoryBtn, &QPushButton::clicked, this, &MainWindow::onShowFullHistory);
     historyLayout->addWidget(showFullHistoryBtn);
     
     QGroupBox* detailsGroup = new QGroupBox("History Details", historyTab);
     QVBoxLayout* detailsLayout = new QVBoxLayout(detailsGroup);
+    detailsLayout->setSpacing(6);
     
     historyDetails = new QTextEdit();
     historyDetails->setReadOnly(true);
@@ -318,15 +401,20 @@ void MainWindow::setupHistoryTab(QWidget* historyTab, QVBoxLayout* layout) {
 void MainWindow::setupAnalyticsTab(QWidget* analyticsTab, QVBoxLayout* layout) {
     QGroupBox* analyticsGroup = new QGroupBox("Zone Analytics", analyticsTab);
     QVBoxLayout* analyticsLayout = new QVBoxLayout(analyticsGroup);
+    analyticsLayout->setSpacing(8);
     
     zoneAnalyticsTable = new QTableWidget();
     zoneAnalyticsTable->setColumnCount(4);
     zoneAnalyticsTable->setHorizontalHeaderLabels(QStringList() << "Zone ID" << "Total Slots" << "Occupied" << "Utilization %");
     zoneAnalyticsTable->horizontalHeader()->setStretchLastSection(true);
+    zoneAnalyticsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    zoneAnalyticsTable->setAlternatingRowColors(true);
     
     analyticsLayout->addWidget(zoneAnalyticsTable);
     
-    showZoneAnalyticsBtn = new QPushButton("Refresh Zone Analytics");
+    showZoneAnalyticsBtn = new QPushButton("🔄 Refresh Zone Analytics");
+    showZoneAnalyticsBtn->setMinimumHeight(35);
+    showZoneAnalyticsBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(showZoneAnalyticsBtn, &QPushButton::clicked, this, &MainWindow::onShowZoneAnalytics);
     analyticsLayout->addWidget(showZoneAnalyticsBtn);
     
@@ -338,30 +426,40 @@ void MainWindow::setupRollbackTab(QWidget* rollbackTab, QVBoxLayout* layout) {
     
     QGroupBox* rollbackGroup = new QGroupBox("Rollback Operations", rollbackTab);
     QGridLayout* rollbackLayout = new QGridLayout(rollbackGroup);
+    rollbackLayout->setSpacing(8);
     
     QLabel* countLabel = new QLabel("Number of Operations to Undo:");
+    countLabel->setStyleSheet("font-weight: bold;");
     rollbackCountSpinBox = new QSpinBox();
     rollbackCountSpinBox->setMinimum(1);
     rollbackCountSpinBox->setMaximum(100);
     rollbackCountSpinBox->setValue(1);
+    rollbackCountSpinBox->setMinimumWidth(100);
+    rollbackCountSpinBox->setMinimumHeight(30);
     
-    rollbackBtn = new QPushButton("Perform Rollback");
+    rollbackBtn = new QPushButton("⏮️ Perform Rollback");
+    rollbackBtn->setMinimumHeight(35);
+    rollbackBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(rollbackBtn, &QPushButton::clicked, this, &MainWindow::onRollbackOperations);
     
     rollbackLayout->addWidget(countLabel, 0, 0);
     rollbackLayout->addWidget(rollbackCountSpinBox, 0, 1);
     rollbackLayout->addWidget(rollbackBtn, 1, 0, 1, 2);
+    rollbackLayout->setColumnStretch(1, 1);
     
     layout->addWidget(rollbackGroup);
     
     QGroupBox* statusGroup = new QGroupBox("Rollback Status", rollbackTab);
     QVBoxLayout* statusLayout = new QVBoxLayout(statusGroup);
+    statusLayout->setSpacing(8);
     
     rollbackStatusArea = new QTextEdit();
     rollbackStatusArea->setReadOnly(true);
     statusLayout->addWidget(rollbackStatusArea);
     
-    showRollbackStatusBtn = new QPushButton("Show Rollback Status");
+    showRollbackStatusBtn = new QPushButton("📋 Show Rollback Status");
+    showRollbackStatusBtn->setMinimumHeight(35);
+    showRollbackStatusBtn->setFont(QFont("Arial", 11, QFont::Bold));
     connect(showRollbackStatusBtn, &QPushButton::clicked, this, &MainWindow::onShowRollbackStatus);
     statusLayout->addWidget(showRollbackStatusBtn);
     
@@ -885,6 +983,255 @@ void MainWindow::onRollbackOperations() {
     }
 }
 
+void MainWindow::applyStylesheet() {
+    // Professional color scheme with muted/duller tones and better text contrast
+    QString stylesheet = R"(
+        /* Main Window */
+        QMainWindow {
+            background-color: #d8d8d8;
+        }
+        
+        /* Tab Widget */
+        QTabWidget::pane {
+            border: 1px solid #999999;
+            background-color: #e8e8e8;
+        }
+        
+        QTabBar::tab {
+            background-color: #c5c5c5;
+            color: #1a1a1a;
+            padding: 8px 20px;
+            margin: 0px 2px;
+            border: 1px solid #999999;
+            border-bottom: none;
+            font-weight: 500;
+        }
+        
+        QTabBar::tab:selected {
+            background-color: #2196F3;
+            color: #ffffff;
+            border: 1px solid #1976D2;
+            border-bottom: none;
+        }
+        
+        QTabBar::tab:hover:!selected {
+            background-color: #d0d0d0;
+        }
+        
+        /* Group Boxes */
+        QGroupBox {
+            color: #1a1a1a;
+            border: 2px solid #8a8a8a;
+            border-radius: 5px;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: 600;
+            background-color: #d0d0d0;
+        }
+        
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0px 5px 0px 5px;
+        }
+        
+        /* Push Buttons */
+        QPushButton {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        QPushButton:hover {
+            background-color: #1976D2;
+            border: 1px solid #0d47a1;
+        }
+        
+        QPushButton:pressed {
+            background-color: #0d47a1;
+        }
+        
+        QPushButton:disabled {
+            background-color: #999999;
+            color: #555555;
+        }
+        
+        /* Alternate button style for secondary actions */
+        QPushButton[secondary="true"] {
+            background-color: #4CAF50;
+        }
+        
+        QPushButton[secondary="true"]:hover {
+            background-color: #388E3C;
+        }
+        
+        /* Labels */
+        QLabel {
+            color: #1a1a1a;
+            font-size: 12px;
+        }
+        
+        /* Line Edits and ComboBox */
+        QLineEdit, QComboBox {
+            background-color: #ffffff;
+            border: 1px solid #999999;
+            border-radius: 3px;
+            padding: 6px;
+            color: #1a1a1a;
+            font-size: 12px;
+        }
+        
+        QLineEdit:focus, QComboBox:focus {
+            border: 2px solid #2196F3;
+            background-color: #ffffff;
+        }
+        
+        QLineEdit::placeholder {
+            color: #888888;
+        }
+        
+        /* ComboBox Dropdown */
+        QComboBox::drop-down {
+            border: none;
+        }
+        
+        QComboBox QAbstractItemView {
+            background-color: #e8e8e8;
+            color: #1a1a1a;
+            selection-background-color: #2196F3;
+            selection-color: #ffffff;
+            border: 1px solid #999999;
+            outline: none;
+        }
+        
+        QComboBox QAbstractItemView::item {
+            padding: 4px;
+            color: #1a1a1a;
+        }
+        
+        QComboBox QAbstractItemView::item:hover {
+            background-color: #d0d0d0;
+        }
+        
+        QComboBox QAbstractItemView::item:selected {
+            background-color: #2196F3;
+            color: #ffffff;
+        }
+        
+        /* Spin Boxes */
+        QSpinBox {
+            background-color: #ffffff;
+            border: 1px solid #999999;
+            border-radius: 3px;
+            padding: 4px;
+            color: #1a1a1a;
+        }
+        
+        QSpinBox:focus {
+            border: 2px solid #2196F3;
+        }
+        
+        /* Text Edits */
+        QTextEdit {
+            background-color: #ffffff;
+            border: 1px solid #999999;
+            border-radius: 3px;
+            padding: 4px;
+            color: #1a1a1a;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+        }
+        
+        QTextEdit:focus {
+            border: 2px solid #2196F3;
+        }
+        
+        /* Table Widgets */
+        QTableWidget {
+            background-color: #ffffff;
+            border: 1px solid #999999;
+            border-radius: 3px;
+            gridline-color: #d0d0d0;
+        }
+        
+        QTableWidget::item {
+            padding: 4px;
+            border-right: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #ffffff;
+            color: #1a1a1a;
+        }
+        
+        QTableWidget::item:selected {
+            background-color: #64B5F6;
+            color: #000000;
+        }
+        
+        QTableWidget::item:alternate {
+            background-color: #f9f9f9;
+            color: #1a1a1a;
+        }
+        
+        QHeaderView::section {
+            background-color: #2196F3;
+            color: #ffffff;
+            padding: 6px;
+            border: none;
+            font-weight: 600;
+            border-right: 1px solid #1976D2;
+        }
+        
+        /* Dialog */
+        QDialog {
+            background-color: #d8d8d8;
+        }
+        
+        /* Message Box */
+        QMessageBox {
+            background-color: #d8d8d8;
+        }
+        
+        /* Scroll Bars */
+        QScrollBar:vertical {
+            background-color: #d8d8d8;
+            width: 12px;
+            border: none;
+        }
+        
+        QScrollBar::handle:vertical {
+            background-color: #888888;
+            border-radius: 6px;
+            min-height: 20px;
+        }
+        
+        QScrollBar::handle:vertical:hover {
+            background-color: #707070;
+        }
+        
+        QScrollBar:horizontal {
+            background-color: #d8d8d8;
+            height: 12px;
+            border: none;
+        }
+        
+        QScrollBar::handle:horizontal {
+            background-color: #888888;
+            border-radius: 6px;
+            min-width: 20px;
+        }
+        
+        QScrollBar::handle:horizontal:hover {
+            background-color: #707070;
+        }
+    )";
+    
+    qApp->setStyle("Fusion");
+    this->setStyleSheet(stylesheet);
+}
 void MainWindow::onShowRollbackStatus() {
     rollbackStatusArea->clear();
     
