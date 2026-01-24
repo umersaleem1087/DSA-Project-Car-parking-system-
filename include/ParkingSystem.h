@@ -30,6 +30,7 @@ struct DashboardStats {
     int requestsOccupied;
     int requestsReleased;
     int requestsCancelled;
+    int actualOccupiedSlots;  // Actual occupied slots in zones
     double averageParkingDuration;
     int totalZones;
     double systemUtilization;
@@ -58,6 +59,7 @@ private:
     RollbackManager* rollbackManager;
     DoublyLinkedList<ParkingRequest*> masterHistoryList;  // All requests ever made
     DoublyLinkedList<ParkingRequest*> activeRequests;      // Currently active requests
+    DoublyLinkedList<Zone*> zoneCreationHistory;           // Track created zones for rollback
     
     // Helper methods
     ParkingRequest* findRequestByVehicleID(const std::string& vehicleID);
@@ -74,6 +76,7 @@ public:
     // PUBLIC API - SYSTEM INITIALIZATION
     // ========================================================================
     void addZone(Zone* zone);
+    bool createZone(int zoneID, int numSlots);  // Create new zone with rollback support
     void displaySystemStatus() const;
     
     // ========================================================================
@@ -100,7 +103,17 @@ public:
     ParkingRequest* getRequestByVehicleID(const std::string& vehicleID);
     
     /**
+     * Allocate a parking slot for a vehicle request
+     * Transitions request from REQUESTED to ALLOCATED state
+     * 
+     * @param vehicleID - Vehicle ID to allocate slot for
+     * @return bool - Success or failure (true if slot allocated, false if no slots available)
+     */
+    bool allocateSlotForRequest(const std::string& vehicleID);
+    
+    /**
      * Occupy a parking slot (vehicle enters the slot)
+     * Transitions request from ALLOCATED to OCCUPIED state
      * 
      * @param vehicleID - Vehicle occupying the slot
      * @return bool - Success or failure
@@ -184,6 +197,7 @@ public:
     // ========================================================================
     AllocationEngine* getEngine() const;
     RollbackManager* getRollbackManager() const;
+    Zone* getZoneByID(int zoneID) const;
     DoublyLinkedList<ParkingRequest*>& getMasterHistory();
     DoublyLinkedList<ParkingRequest*>& getActiveRequests();
 };

@@ -25,6 +25,9 @@ public:
     ~MainWindow();
 
 private slots:
+    // Zone Management Slots
+    void onCreateZone();
+    
     // Parking Request Slots
     void onCreateRequest();
     void onOccupyParking();
@@ -35,6 +38,7 @@ private slots:
     void onRefreshDashboard();
     void onShowZoneAnalytics();
     void onShowFullHistory();
+    void onDashboardTabChanged(int index);
     
     // Rollback Slots
     void onRollbackOperations();
@@ -57,6 +61,13 @@ private:
     
     // Parking System
     ParkingSystem* parkingSystem;
+    
+    // =====================================================
+    // ZONE MANAGEMENT WIDGETS
+    // =====================================================
+    QSpinBox* newZoneIDSpinBox;
+    QSpinBox* numSlotsSpinBox;
+    QPushButton* createZoneBtn;
     
     // =====================================================
     // REQUEST MANAGEMENT TAB WIDGETS

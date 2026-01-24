@@ -85,3 +85,18 @@ void Zone::displayInfo() const {
     std::cout << "Zone ID: " << zoneID << ", Total Capacity: " << totalCapacity 
               << ", Available: " << getAvailableSlots() << std::endl;
 }
+
+void Zone::refreshCapacity() {
+    // Refresh available count in all parking areas
+    Node<ParkingArea*>* current = parkingAreas.getHead();
+    while (current != nullptr) {
+        if (current->data != nullptr) {
+            current->data->refreshAvailableCount();
+        }
+        current = current->next;
+    }
+}
+
+DoublyLinkedList<ParkingArea*>& Zone::getParkingAreas() {
+    return parkingAreas;
+}

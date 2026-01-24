@@ -7,6 +7,7 @@
 // Forward declarations for circular dependency prevention
 class ParkingRequest;
 class ParkingSlot;
+class Zone;
 
 // ============================================================================
 // REQUEST STATE ENUM (Must be before Command struct)
@@ -25,15 +26,16 @@ enum class RequestState {
 struct Command {
     ParkingRequest* requestPtr;
     ParkingSlot* slotPtr;
+    Zone* zonePtr;
     RequestState oldState;
     RequestState newState;
     
-    Command() : requestPtr(nullptr), slotPtr(nullptr), 
+    Command() : requestPtr(nullptr), slotPtr(nullptr), zonePtr(nullptr),
                 oldState(RequestState::REQUESTED), newState(RequestState::REQUESTED) {}
     
-    Command(ParkingRequest* req, ParkingSlot* slot, 
+    Command(ParkingRequest* req, ParkingSlot* slot, Zone* zone,
             RequestState old, RequestState newS) 
-        : requestPtr(req), slotPtr(slot), oldState(old), newState(newS) {}
+        : requestPtr(req), slotPtr(slot), zonePtr(zone), oldState(old), newState(newS) {}
 };
 
 // ============================================================================

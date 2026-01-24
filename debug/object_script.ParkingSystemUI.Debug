@@ -1,0 +1,11 @@
+debug/ParkingSlot.o
+debug/ParkingArea.o
+debug/ParkingRequest.o
+debug/AllocationEngine.o
+debug/Vehicle.o
+debug/Zone.o
+debug/RollbackManager.o
+debug/ParkingSystem.o
+debug/main-qt.o
+debug/MainWindow.o
+debug/moc_MainWindow.o

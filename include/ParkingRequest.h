@@ -11,6 +11,7 @@ class ParkingRequest {
 private:
     std::string vehicleID;
     int requestedZoneID;
+    int allocatedSlotID;
     DateTime requestTime;
     RequestState currentStatus;
     double penaltyCost;
@@ -35,6 +36,7 @@ public:
     // ========================================================================
     std::string getVehicleID() const;
     int getRequestedZoneID() const;
+    int getAllocatedSlotID() const;
     DateTime getRequestTime() const;
     RequestState getCurrentStatus() const;
     double getPenaltyCost() const;
@@ -44,6 +46,7 @@ public:
     // ========================================================================
     void setPenaltyCost(double cost);
     void addPenaltyCost(double cost);
+    void setAllocatedSlotID(int slotID);
     
     // ========================================================================
     // UTILITY METHODS

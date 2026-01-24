@@ -13,9 +13,6 @@
 class AllocationEngine {
 private:
     DoublyLinkedList<Zone*> allZones;
-    
-    // Helper method
-    Zone* findZoneByID(int zoneID);
 
 public:
     // Constructor
@@ -28,6 +25,7 @@ public:
     // ZONE MANAGEMENT
     // ========================================================================
     void addZone(Zone* zone);
+    Zone* findZoneByID(int zoneID);
     
     // ========================================================================
     // ALLOCATION ALGORITHM
@@ -48,6 +46,14 @@ public:
      * @return ParkingSlot* - Pointer to allocated slot, or nullptr if no slot available
      */
     ParkingSlot* allocateSlot(Vehicle* vehicle, ParkingRequest* parkingRequest);
+    
+    /**
+     * Free a parking slot (vehicle departs)
+     * 
+     * @param slotID - The slot ID to free
+     * @return bool - Success or failure
+     */
+    bool freeSlot(int slotID);
     
     // ========================================================================
     // SEARCH HELPERS

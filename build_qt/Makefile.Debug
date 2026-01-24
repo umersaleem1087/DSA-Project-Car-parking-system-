@@ -431,7 +431,8 @@ debug/AllocationEngine.o: ../src/AllocationEngine.cpp ../include/AllocationEngin
 		../include/Common.h \
 		../include/Zone.h \
 		../include/LinkedList.h \
-		../include/Node.h
+		../include/Node.h \
+		../include/ParkingArea.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\AllocationEngine.o ..\src\AllocationEngine.cpp
 
 debug/Vehicle.o: ../src/Vehicle.cpp ../include/Vehicle.h
@@ -461,7 +462,8 @@ debug/ParkingSystem.o: ../src/ParkingSystem.cpp ../include/ParkingSystem.h \
 		../include/AllocationEngine.h \
 		../include/ParkingSlot.h \
 		../include/RollbackManager.h \
-		../include/Stack.h
+		../include/Stack.h \
+		../include/ParkingArea.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\ParkingSystem.o ..\src\ParkingSystem.cpp
 
 debug/main-qt.o: ../src/main-qt.cpp C:/Qt/6.10.1/mingw_64/include/QtWidgets/QApplication \
@@ -973,6 +975,7 @@ debug/MainWindow.o: ../src/MainWindow.cpp ../include/MainWindow.h \
 		../include/ParkingSlot.h \
 		../include/RollbackManager.h \
 		../include/Stack.h \
+		../include/ParkingArea.h \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/QGridLayout \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/QGroupBox \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/qgroupbox.h \
@@ -982,6 +985,8 @@ debug/MainWindow.o: ../src/MainWindow.cpp ../include/MainWindow.h \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/qmessagebox.h \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/qdialog.h \
 		C:/Qt/6.10.1/mingw_64/include/QtWidgets/qdialogbuttonbox.h \
+		C:/Qt/6.10.1/mingw_64/include/QtWidgets/QApplication \
+		C:/Qt/6.10.1/mingw_64/include/QtWidgets/qapplication.h \
 		C:/Qt/6.10.1/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.10.1/mingw_64/include/QtCore/qdatetime.h \
 		C:/Qt/6.10.1/mingw_64/include/QtCore/qcalendar.h \

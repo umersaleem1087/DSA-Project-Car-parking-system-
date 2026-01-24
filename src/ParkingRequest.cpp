@@ -2,17 +2,27 @@
 #include <iostream>
 
 ParkingRequest::ParkingRequest(const std::string& vID, int zoneID) 
-    : vehicleID(vID), requestedZoneID(zoneID), currentStatus(RequestState::REQUESTED), penaltyCost(0.0) {
+    : vehicleID(vID), requestedZoneID(zoneID), allocatedSlotID(-1), currentStatus(RequestState::REQUESTED), penaltyCost(0.0) {
     // Initialize request time to current time (simplified)
 }
 
 ParkingRequest::~ParkingRequest() {}
 
 bool ParkingRequest::isValidTransition(RequestState from, RequestState to) {
+    // Normal forward transitions
     if (from == RequestState::REQUESTED && (to == RequestState::ALLOCATED || to == RequestState::CANCELLED)) return true;
     if (from == RequestState::ALLOCATED && (to == RequestState::OCCUPIED || to == RequestState::CANCELLED)) return true;
-    if (from == RequestState::OCCUPIED && to == RequestState::RELEASED) return true;
+    if (from == RequestState::OCCUPIED && (to == RequestState::RELEASED || to == RequestState::ALLOCATED)) return true;
     if (from == RequestState::RELEASED && to == RequestState::REQUESTED) return true;
+    
+    // Rollback transitions (going backwards)
+    if (from == RequestState::ALLOCATED && to == RequestState::REQUESTED) return true;
+    if (from == RequestState::OCCUPIED && to == RequestState::ALLOCATED) return true;
+    if (from == RequestState::RELEASED && to == RequestState::OCCUPIED) return true;
+    if (from == RequestState::CANCELLED && to == RequestState::REQUESTED) return true;
+    if (from == RequestState::CANCELLED && to == RequestState::ALLOCATED) return true;
+    if (from == RequestState::CANCELLED && to == RequestState::OCCUPIED) return true;
+    
     return false;
 }
 
@@ -30,6 +40,10 @@ std::string ParkingRequest::getVehicleID() const {
 
 int ParkingRequest::getRequestedZoneID() const { 
     return requestedZoneID; 
+}
+
+int ParkingRequest::getAllocatedSlotID() const { 
+    return allocatedSlotID; 
 }
 
 DateTime ParkingRequest::getRequestTime() const { 
@@ -50,6 +64,10 @@ void ParkingRequest::setPenaltyCost(double cost) {
 
 void ParkingRequest::addPenaltyCost(double cost) { 
     penaltyCost += cost; 
+}
+
+void ParkingRequest::setAllocatedSlotID(int slotID) { 
+    allocatedSlotID = slotID; 
 }
 
 void ParkingRequest::displayInfo() const {

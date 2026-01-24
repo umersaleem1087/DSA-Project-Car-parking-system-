@@ -1,14 +1,24 @@
 #include "ParkingArea.h"
 #include "ParkingSlot.h"
 #include <iostream>
+#include <vector>
+#include <cstdint>
 
-ParkingArea::ParkingArea(int id) : areaID(id), totalSlots(0), availableSlots(0) {}
+ParkingArea::ParkingArea(int id) : areaID(id), slotsPtr(0), totalSlots(0), availableSlots(0) {
+    slotsPtr = (intptr_t)(new std::vector<ParkingSlot*>());
+}
 
-ParkingArea::~ParkingArea() {}
+ParkingArea::~ParkingArea() {
+    if (slotsPtr != 0) {
+        delete (std::vector<ParkingSlot*>*)(slotsPtr);
+        slotsPtr = 0;
+    }
+}
 
 void ParkingArea::addSlot(ParkingSlot* slot) {
-    if (slot != nullptr) {
-        slots.push_back(slot);
+    if (slot != nullptr && slotsPtr != 0) {
+        auto* slotVec = (std::vector<ParkingSlot*>*)(slotsPtr);
+        slotVec->push_back(slot);
         totalSlots++;
         if (slot->getIsAvailable()) {
             availableSlots++;
@@ -17,7 +27,9 @@ void ParkingArea::addSlot(ParkingSlot* slot) {
 }
 
 ParkingSlot* ParkingArea::findAvailableSlot() {
-    for (auto slot : slots) {
+    if (slotsPtr == 0) return nullptr;
+    auto* slotVec = (std::vector<ParkingSlot*>*)(slotsPtr);
+    for (auto slot : *slotVec) {
         if (slot != nullptr && slot->getIsAvailable()) {
             return slot;
         }
@@ -26,7 +38,9 @@ ParkingSlot* ParkingArea::findAvailableSlot() {
 }
 
 ParkingSlot* ParkingArea::findSlotByID(int slotID) {
-    for (auto slot : slots) {
+    if (slotsPtr == 0) return nullptr;
+    auto* slotVec = (std::vector<ParkingSlot*>*)(slotsPtr);
+    for (auto slot : *slotVec) {
         if (slot != nullptr && slot->getSlotID() == slotID) {
             return slot;
         }
@@ -46,13 +60,11 @@ int ParkingArea::getAvailableSlots() const {
     return availableSlots; 
 }
 
-std::vector<ParkingSlot*>& ParkingArea::getSlotsList() {
-    return slots;
-}
-
 void ParkingArea::refreshAvailableCount() {
+    if (slotsPtr == 0) return;
+    auto* slotVec = (std::vector<ParkingSlot*>*)(slotsPtr);
     availableSlots = 0;
-    for (auto slot : slots) {
+    for (auto slot : *slotVec) {
         if (slot != nullptr && slot->getIsAvailable()) {
             availableSlots++;
         }

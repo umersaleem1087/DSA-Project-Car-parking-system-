@@ -1,9 +1,9 @@
 #ifndef PARKINGAREA_H
 #define PARKINGAREA_H
 
-#include <vector>
+#include <cstdint>
 
-// Forward declarations
+// Forward declarations only - no includes to avoid MOC issues
 class ParkingSlot;
 
 // ============================================================================
@@ -12,7 +12,7 @@ class ParkingSlot;
 class ParkingArea {
 private:
     int areaID;
-    std::vector<ParkingSlot*> slots;  // Use std::vector instead
+    intptr_t slotsPtr;  // Opaque pointer to std::vector<ParkingSlot*>
     int totalSlots;
     int availableSlots;
 
@@ -36,7 +36,6 @@ public:
     int getAreaID() const;
     int getTotalSlots() const;
     int getAvailableSlots() const;
-    std::vector<ParkingSlot*>& getSlotsList();
     
     // ========================================================================
     // UTILITY METHODS
